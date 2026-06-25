@@ -28,145 +28,320 @@
   <body>
     <div class="container">
       <div id="birthdayText"></div>
+      <button id="startBtn">🎂 Make a Wish</button>
       <div class="cake-container">
         <div class="cake" id="cake"></div>
       </div>
     </div>
 
-    <script>
-      // Read URL params
-      const params = new URLSearchParams(window.location.search);
-      const name = params.get("name") || "Friend";
-      let candleCount = parseInt(params.get("candles")) || 4;
-      candleCount = Math.min(Math.max(candleCount, 1), 30);
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+  // Read URL params
+  const params = new URLSearchParams(window.location.search);
+  const name = params.get("name") || "shreyuu";
+  let candleCount = parseInt(params.get("candles")) || 4;
+  candleCount = Math.min(Math.max(candleCount, 1), 30);
 
-      const birthdayText = document.getElementById("birthdayText");
-      birthdayText.innerHTML = `
-        <div id="mainTitle">Happy Birthday, ${name}!</div>
-        <div id="subTitle">Make a wish and blow candles.</div>
+  const birthdayText = document.getElementById("birthdayText");
+
+ birthdayText.innerHTML = `
+      <div id="mainTitle">Happy Birthday, ${name}! 🎂</div>
+      <div id="subTitle">Tap 🎂 Make a Wish to begin ✨</div>
+  `;
+
+  const cake = document.getElementById("cake");
+
+  const colors = [
+    "green-candle",
+    "purple-candle",
+    "blue-candle",
+    "yellow-candle",
+  ];
+
+  function createCandles(count) {
+    cake.innerHTML = "";
+
+    const candlesPerRow = 6;
+    const availableWidth = 35;
+    const candleWidth = 2;
+
+    for (let i = 0; i < count; i++) {
+      const candle = document.createElement("div");
+      candle.classList.add("candle");
+
+      const colorClass = colors[Math.floor(Math.random() * colors.length)];
+      candle.classList.add(colorClass);
+
+      const row = Math.floor(i / candlesPerRow);
+      const col = i % candlesPerRow;
+      const totalInRow = Math.min(candlesPerRow, count - row * candlesPerRow);
+
+      const spacing = availableWidth / (totalInRow + 1);
+
+      candle.style.position = "absolute";
+      candle.style.top = `${10 + row * 3}px`;
+      candle.style.left = `${spacing * (col + 1) - candleWidth / 2 + 9}px`;
+
+      cake.appendChild(candle);
+    }
+  }
+
+  createCandles(candleCount);
+
+  let blown = false;
+  let stream;
+
+  async function startMicDetection() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
+
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 1024;
+
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+
+      const dataArray = new Uint8Array(analyser.fftSize);
+
+      function detectBlow() {
+        if (blown) return;
+
+        analyser.getByteTimeDomainData(dataArray);
+
+        let sum = 0;
+
+        for (let i = 0; i < dataArray.length; i++) {
+          const x = (dataArray[i] - 128) / 128;
+          sum += x * x;
+        }
+
+        const volume = Math.sqrt(sum / dataArray.length);
+        console.log(volume);
+        // Adjust sensitivity here
+        if (volume > 0.06) {
+          blown = true;
+          blowOutCandles();
+          return;
+        }
+
+        requestAnimationFrame(detectBlow);
+      }
+
+      detectBlow();
+    } catch (err) {
+      console.error(err);
+
+      document.getElementById("subTitle").textContent =
+        "Microphone access denied 😢";
+    }
+  }
+  function playSongWithFadeIn() {
+  const song = document.getElementById("birthdaySong");
+
+  song.volume = 0;
+  song.play();
+
+  const targetVolume = 0.4; // Maximum volume
+  const fade = setInterval(() => {
+    if (song.volume < targetVolume - 0.02) {
+      song.volume += 0.02;
+    } else {
+      song.volume = targetVolume;
+      clearInterval(fade);
+    }
+  }, 100);
+}
+const memories = [
+{
+  image: "photos/photo1.jpeg",
+  text: "❤️"
+},
+{
+  image: "photos/photo2.jpeg",
+  text: "✨"
+},
+{
+  image: "photos/photo3.jpeg",
+  text: "🥹"
+},
+{
+  image: "photos/photo4.jpeg",
+  text: "💖"
+},
+{
+  image: "photos/photo5.jpeg",
+  text: "🌸"
+},
+{
+  image: "photos/photo6.jpeg",
+  text: "🎀"
+}
+];
+
+function startMemoryWall() {
+
+  const wall = document.getElementById("memoryWall");
+
+  const positions = [
+    {top: 10, left: 15},
+    {top: 20, left: 75},
+    {top: 50, left: 10},
+    {top: 50, left: 80},
+    {top: 75, left: 20},
+    {top: 75, left: 70}
+  ];
+
+  memories.forEach((memory, index) => {
+
+    setTimeout(() => {
+
+      const frame = document.createElement("div");
+
+      frame.className = "memory-photo";
+
+      frame.style.top = positions[index].top + "%";
+      frame.style.left = positions[index].left + "%";
+
+      frame.style.rotate = `${Math.random()*12-6}deg`;
+
+      frame.style.animationDuration =
+        `${3 + Math.random()*2}s`;
+
+      frame.innerHTML = `
+        <img src="${memory.image}">
+        <div class="caption">${memory.text}</div>
       `;
 
-      const cake = document.getElementById("cake");
+      wall.appendChild(frame);
 
-      const colors = [
-        "green-candle",
-        "purple-candle",
-        "blue-candle",
-        "yellow-candle",
-      ];
-      const CAKE_VISUAL_WIDTH = 35;
+      setTimeout(()=>{
+        frame.classList.add("show");
+      },100);
 
-      function createCandles(count) {
-        cake.innerHTML = "";
-        const CANDLE_VISUAL_WIDTH = 2;
-        const availableWidth = CAKE_VISUAL_WIDTH;
-        const candlesPerRow = 6;
-        const rowCount = Math.ceil(count / candlesPerRow);
-        const shiftAmount = 4;
+      if (index === 5) {
+    setTimeout(() => {
+        showLoveMessage();
+    }, 1000);
+}
+    },index*2500);
 
-        for (let i = 0; i < count; i++) {
-          const candle = document.createElement("div");
-          candle.classList.add("candle");
-          const colorClass = colors[Math.floor(Math.random() * colors.length)];
-          candle.classList.add(colorClass);
+  });
 
-          const row = Math.floor(i / candlesPerRow);
-          const col = i % candlesPerRow;
-          const totalCandlesInRow = Math.min(
-            candlesPerRow,
-            count - row * candlesPerRow
-          );
-          const rowSpacing = availableWidth / (totalCandlesInRow + 1);
+}
 
-          const leftBase = rowSpacing * (col + 1) - CANDLE_VISUAL_WIDTH / 2 + 5;
-          const rowShift = row % 2 === 0 ? 0 : shiftAmount;
+function showLoveMessage() {
 
-          candle.style.position = "absolute";
-          candle.style.top = `${10 + row * 3}px`;
-          candle.style.left = `${leftBase - rowShift + 4}px`;
+    const mainTitle = document.getElementById("mainTitle");
+    const subTitle = document.getElementById("subTitle");
 
-          cake.appendChild(candle);
-        }
-      }
+    // Fade away current text
+    mainTitle.style.opacity = 0;
+    subTitle.style.opacity = 0;
 
-      createCandles(candleCount);
+    setTimeout(() => {
 
-      // === Microphone / Blow Detection ===
-      async function startMicDetection() {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-          });
-          const audioContext = new (window.AudioContext ||
-            window.webkitAudioContext)();
-          const source = audioContext.createMediaStreamSource(stream);
-          const analyser = audioContext.createAnalyser();
-          analyser.fftSize = 512;
+        // New title
+        mainTitle.innerHTML = "Happy Birthday, My Love ❤️";
 
-          source.connect(analyser);
+        // Start with empty subtitle
+        subTitle.innerHTML = "";
 
-          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        // Fade title back in
+        mainTitle.style.opacity = 1;
+        subTitle.style.opacity = 1;
 
-          let blown = false;
+        // Type lines one by one
+        const lines = [
+            "Thank you for making my world brighter ✨",
+            "I hope this year brings you happiness,",
+            "laughter and countless beautiful memories 🥹🌸",
+            "Forever yours 🫶"
+        ];
 
-          function detectBlow() {
-            analyser.getByteFrequencyData(dataArray);
+        lines.forEach((line, index) => {
+            setTimeout(() => {
 
-            let highFreqSum = 0;
-            let lowFreqSum = 0;
+                const p = document.createElement("div");
 
-            const midpoint = dataArray.length / 2;
+                p.style.opacity = 0;
+                p.style.transition = "opacity 1.5s ease";
+                p.innerHTML = line;
 
-            for (let i = 0; i < dataArray.length; i++) {
-              if (i < midpoint) {
-                lowFreqSum += dataArray[i];
-              } else {
-                highFreqSum += dataArray[i];
-              }
-            }
+                subTitle.appendChild(p);
 
-            const highAvg = highFreqSum / (dataArray.length / 2);
-            const lowAvg = lowFreqSum / (dataArray.length / 2);
+                setTimeout(() => {
+                    p.style.opacity = 1;
+                }, 100);
 
-            const ratio = highAvg / (lowAvg + 1);
+            }, index * 2000);
 
-            const BLOW_RATIO_THRESHOLD = 0.5;
-
-            if (ratio > BLOW_RATIO_THRESHOLD && !blown) {
-              blown = true;
-              blowOutCandles();
-            }
-
-            requestAnimationFrame(detectBlow);
-          }
-
-          detectBlow();
-        } catch (err) {
-          console.error("Mic access error:", err);
-        }
-      }
-
-      function blowOutCandles() {
-        const candles = document.querySelectorAll(".candle");
-        candles.forEach((candle) => {
-          const delay = Math.random() * 1000;
-          setTimeout(() => {
-            colors.forEach((color) => {
-              if (candle.classList.contains(color)) {
-                candle.classList.add("blown");
-              }
-            });
-          }, delay);
         });
 
-        // Update subTitle after short delay
-        setTimeout(() => {
-          const subTitle = document.getElementById("subTitle");
-          subTitle.textContent = `Yayy! Wishing you the happiest birthday ever!! 🎉`;
-        }, 1200);
-      }
+    }, 1500);
+}
+  function blowOutCandles() {
 
-      startMicDetection();
-    </script>
-  </body>
+    const candles = document.querySelectorAll(".candle");
+
+    candles.forEach((candle) => {
+      setTimeout(() => {
+        colors.forEach((color) => {
+          if (candle.classList.contains(color)) {
+            candle.classList.add("blown");
+          }
+        });
+      }, Math.random() * 1000);
+    });
+
+    // Stop microphone
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
+
+    playSongWithFadeIn();
+    setTimeout(() => {
+  startMemoryWall();
+},2000);
+
+    // Confetti 🎉
+    setTimeout(() => {
+      confetti({
+        particleCount: 200,
+        spread: 100,
+        origin: { y: 0.6 },
+      });
+    }, 1000);
+
+    // Update text
+    setTimeout(() => {
+      document.getElementById(
+        "subTitle"
+      ).textContent = "";
+    }, 1200);
+  }
+
+  // Start after user interaction
+ document.getElementById("startBtn").addEventListener(
+  "click",
+  async () => {
+
+    document.getElementById("subTitle").textContent =
+      "Now blow into the microphone 🌬️";
+
+    startMicDetection();
+
+    document.getElementById("startBtn").style.display = "none";
+
+  },
+  { once: true }
+);
+</script>
+ <audio id="birthdaySong">
+  <source src="song.mp3" type="audio/mpeg">
+</audio>
+<div id="memoryWall"></div>
+ </body>
 </html>

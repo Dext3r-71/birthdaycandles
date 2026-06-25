@@ -6861,3 +6861,121 @@ body {
     width: 5px;
   }
 }
+body {
+  position: relative;
+}
+
+.container,
+.cake-container,
+.cake {
+  position: relative !important;
+  z-index: 9999 !important;
+}
+
+#memoryWall {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 5;
+}
+
+.memory-photo {
+  position: absolute;
+  width: 160px;
+  background: #fff8f6;
+  padding: 8px 8px 30px;
+  border-radius: 10px;
+  box-shadow: 0 8px 25px rgba(0,0,0,.15);
+
+  opacity: 0;
+  transition: opacity 1.5s ease;
+
+  animation: float 4s ease-in-out infinite alternate;
+}
+
+.memory-photo.show {
+  opacity: 1;
+}
+
+.memory-photo img {
+  width: 100%;
+  border-radius: 5px;
+}
+
+.caption {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 14px;
+  color: #7a6b6b;
+}
+
+.memory-photo:nth-child(odd){
+    animation-delay: .5s;
+}
+
+.memory-photo:nth-child(even){
+    animation-delay: 1s;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+#loveMessage {
+    position: fixed;
+    left: 50%;
+    top: 85%;
+    transform: translateX(-50%);
+
+    font-family: 'Pixelify Sans', sans-serif;
+    font-size: 40px;
+    color: #8b5e5e;
+
+    opacity: 0;
+    transition: opacity 2s ease;
+
+    z-index: 100;
+}
+
+#loveMessage.show {
+    opacity: 1;
+}
+
+#mainTitle,
+#subTitle {
+    transition: opacity 1.5s ease;
+}
+
+#subTitle div {
+    margin-top: 8px;
+}
+#startBtn {
+    font-family: 'Pixelify Sans', sans-serif;
+    font-size: 18px;
+    padding: 12px 24px;
+    margin-bottom: 20px;
+
+    border: none;
+    border-radius: 12px;
+
+    background: #f7d6d8;
+    color: #8b5e5e;
+
+    cursor: pointer;
+
+    transition: all .3s ease;
+}
+
+#startBtn:hover{
+    transform: scale(1.05);
+}
